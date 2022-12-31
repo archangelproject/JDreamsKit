@@ -1,31 +1,29 @@
-/**
- * 
- */
-package org.archangelproject.metadreams.xml;
+package org.archangelproject.metadreams.export.xml;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author archangelproject
- * File containing all the info for a generated dream
- */
-
-public class XMLDream {
+public abstract class XMLElement {
 	
+	private String key;
 	private Map<String, XMLAttribute> attributes;
-	private String dreamName;
 
-	public XMLDream(String dreamName) {
+	public XMLElement(String key) {
 		super();
+		if (key == null)
+			throw new IllegalArgumentException("Key must not be null");
 		
-		this.dreamName = dreamName;
-		this.attributes = new HashMap<String, XMLAttribute>(5);
+		this.key = key;
+		this.attributes = new HashMap<String, XMLAttribute>();
+	}
+
+	public String getKey() {
+		return key;
 	}
 	
-	public String getDreamName() {
-		return this.dreamName;
+	public void setKey(String key) {
+		this.key = key;
 	}
 	
 	public XMLAttribute addAttribute(String key, String value) {
@@ -52,4 +50,6 @@ public class XMLDream {
 	public XMLAttribute deleteAttribute(String key) {
 		return this.attributes.remove(key);
 	}
+
+	public abstract Object getXMLNode();
 }
