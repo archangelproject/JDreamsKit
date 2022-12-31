@@ -2,9 +2,9 @@ package org.archangelproject.metadreams.metadata.image.png;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import javax.imageio.ImageIO;
@@ -23,23 +23,17 @@ import org.w3c.dom.NodeList;
 public class PNGReader extends ImageMetadataReader {
 	
 	private IIOMetadata metadata;
-	private List<MetadataNode> nodes;
+	private Map<String, MetadataNode> nodes;
 	private ImageDimension dimension;
 	private boolean closed;
 
-	public PNGReader(File file) throws MetadataException {
-		super(file);
-		init();
+	public PNGReader() {
 	}
 	
-	public PNGReader(String filepath) throws MetadataException {
-		super(filepath);
-		init();
-	}
 	
 	private void init() throws MetadataException {
 		this.closed = false;
-		this.nodes = null;
+		this.nodes=new HashMap<String, MetadataNode>();
 		
 		try (ImageInputStream input = ImageIO.createImageInputStream(this.getFile())){
 
@@ -53,28 +47,48 @@ public class PNGReader extends ImageMetadataReader {
         } catch (IOException e) {
 			throw new MetadataException("The specified file dies not exist");
 		} catch(NoSuchElementException e) {
-			throw new MetadataException("The specified file is not an image");
+			throw new MetadataException("The specified file is not an image: "+this.getFile().getName());
 		}
 	}
 
 	@Override
-	public List<MetadataNode> getMetadata() throws MetadataException{
-		if(this.nodes == null) {
-			this.nodes=new ArrayList<MetadataNode>();
+	public Map<String, MetadataNode> getMetadata() throws MetadataException{
+		if (!this.isClosed()) {
+			this.init();
 			
 			IIOMetadataNode root = (IIOMetadataNode) this.metadata.getAsTree(IIOMetadataFormatImpl.standardMetadataFormatName);
 			NodeList entries = root.getElementsByTagName("TextEntry");
 		
 			IIOMetadataNode node;
+			MetadataNode metadataNode;
 			for (int i = 0; i < entries.getLength(); i++) {
 				node = (IIOMetadataNode)entries.item(i);
-				this.nodes.add(new MetadataNode(node.getAttribute("keyword"), node.getAttribute("value")));
+				metadataNode = new MetadataNode(node.getAttribute("keyword"), node.getAttribute("value"));
+				this.nodes.put(metadataNode.getKeyword(), metadataNode);
 			}
 		}
 		
 		return this.nodes;
 	}
-	
+
+	@Override
+	public File setFile(String filepath) {
+		super.setFile(filepath);
+		
+		this.close();
+		this.closed = false;
+		
+		return this.getFile();
+	}
+
+	@Override
+	public void setFile(File file) {
+		super.setFile(file);
+		
+		this.close();
+		this.closed = false;
+	}
+
 	@Override
 	public void refresh() throws MetadataException{
 		this.init();

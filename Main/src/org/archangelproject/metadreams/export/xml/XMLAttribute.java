@@ -1,4 +1,4 @@
-package org.archangelproject.metadreams.xml;
+package org.archangelproject.metadreams.export.xml;
 
 public class XMLAttribute {
 	private String key;
